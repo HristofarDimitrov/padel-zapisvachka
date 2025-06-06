@@ -7,8 +7,11 @@ import {
   updatePlayerPosition,
   shufflePlayers,
   deleteTournament,
+  addPlayerToTournament,
+  removePlayerFromTournament,
 } from "../services/tournamentService";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Trash2, AlertTriangle, UserPlus, X } from "lucide-react";
+import { AddPlayerModal } from "./AddPlayerModal";
 
 const AdminDashboard: React.FC = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -18,6 +21,7 @@ const AdminDashboard: React.FC = () => {
   });
   const [tournamentToDelete, setTournamentToDelete] = useState<Tournament | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
 
   useEffect(() => {
     loadTournaments();
@@ -129,6 +133,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleAddPlayer = async (player: { id?: string; name: string; email?: string }) => {
+    if (!selectedTournament) return;
+
+    try {
+      await addPlayerToTournament(selectedTournament.id, player);
+      await loadTournaments();
+    } catch (error) {
+      console.error("Error adding player:", error);
+      throw error;
+    }
+  };
+
+  const handleRemovePlayer = async (tournamentId: string, playerId: string) => {
+    try {
+      await removePlayerFromTournament(tournamentId, playerId);
+      await loadTournaments();
+    } catch (error) {
+      console.error("Error removing player:", error);
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
@@ -223,6 +248,16 @@ const AdminDashboard: React.FC = () => {
                   Shuffle
                 </button>
                 <button
+                  onClick={() => {
+                    setSelectedTournament(tournament);
+                  }}
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 flex items-center space-x-1"
+                  disabled={tournament.currentPlayers >= tournament.maxPlayers}
+                >
+                  <UserPlus size={16} />
+                  <span>Add Player</span>
+                </button>
+                <button
                   onClick={() => handleDeleteTournament(tournament)}
                   className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center space-x-1"
                 >
@@ -282,6 +317,13 @@ const AdminDashboard: React.FC = () => {
                                     placeholder="Position"
                                     min="1"
                                   />
+                                  <button
+                                    onClick={() => handleRemovePlayer(tournament.id, player.id)}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                                    title="Remove player"
+                                  >
+                                    <X size={16} />
+                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -375,6 +417,18 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Player Modal */}
+      {selectedTournament && (
+        <AddPlayerModal
+          isOpen={!!selectedTournament}
+          onClose={() => setSelectedTournament(null)}
+          onAddPlayer={handleAddPlayer}
+          tournamentId={selectedTournament.id}
+          currentPlayers={selectedTournament.players || []}
+          maxPlayers={selectedTournament.maxPlayers}
+        />
       )}
     </div>
   );

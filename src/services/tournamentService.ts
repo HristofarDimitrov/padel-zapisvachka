@@ -11,9 +11,10 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { Tournament, TournamentPlayer, Team } from "../types/tournament";
+import { Tournament, TournamentPlayer, Team, Player } from "../types/tournament";
 
 const tournamentsCollection = collection(db, "tournaments");
+const playersCollection = collection(db, "players");
 
 export const generateJoinCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -219,5 +220,85 @@ export const deleteTournament = async (tournamentId: string): Promise<boolean> =
   } catch (error) {
     console.error("Error deleting tournament:", error);
     return false;
+  }
+};
+
+export const getAllPlayers = async (): Promise<Player[]> => {
+  try {
+    const querySnapshot = await getDocs(playersCollection);
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Player[];
+  } catch (error) {
+    console.error("Error fetching players:", error);
+    throw new Error("Failed to load players");
+  }
+};
+
+export const addPlayerToTournament = async (
+  tournamentId: string,
+  player: { id?: string; name: string; email?: string }
+): Promise<boolean> => {
+  try {
+    const tournamentRef = doc(db, "tournaments", tournamentId);
+    const tournamentDoc = await getDoc(tournamentRef);
+
+    if (!tournamentDoc.exists()) return false;
+
+    const tournament = tournamentDoc.data() as Tournament;
+
+    if (tournament.currentPlayers >= tournament.maxPlayers) {
+      throw new Error("Tournament is full");
+    }
+
+    // If it's a registered player (has ID), verify they exist
+    if (player.id) {
+      const playerDoc = await getDoc(doc(db, "players", player.id));
+      if (!playerDoc.exists()) {
+        throw new Error("Player not found");
+      }
+    }
+
+    const newPlayer: TournamentPlayer = {
+      id: player.id || `temp-${Date.now()}`,
+      name: player.name,
+      joinedAt: new Date().toISOString(),
+    };
+
+    await updateDoc(tournamentRef, {
+      players: [...tournament.players, newPlayer],
+      currentPlayers: tournament.currentPlayers + 1,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error adding player to tournament:", error);
+    throw error;
+  }
+};
+
+export const removePlayerFromTournament = async (
+  tournamentId: string,
+  playerId: string
+): Promise<boolean> => {
+  try {
+    const tournamentRef = doc(db, "tournaments", tournamentId);
+    const tournamentDoc = await getDoc(tournamentRef);
+
+    if (!tournamentDoc.exists()) return false;
+
+    const tournament = tournamentDoc.data() as Tournament;
+    const updatedPlayers = tournament.players.filter(p => p.id !== playerId);
+
+    await updateDoc(tournamentRef, {
+      players: updatedPlayers,
+      currentPlayers: updatedPlayers.length,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error removing player from tournament:", error);
+    throw error;
   }
 };
