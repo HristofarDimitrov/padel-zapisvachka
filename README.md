@@ -1,13 +1,12 @@
-# Firebase Notes App
+# Padel Zapisvachka
 
-A beautiful, production-ready notes application built with React, TypeScript, and Firebase Firestore. Create, edit, and organize your thoughts with real-time synchronization.
+A modern web application for managing padel court bookings, built with React, TypeScript, and Firebase Firestore. Streamline your padel court reservations with real-time updates and a beautiful user interface.
 
 ## 🚀 Features
 
 - **Real-time Database**: Powered by Firebase Firestore
 - **Beautiful UI**: Modern design with smooth animations and micro-interactions
-- **Full CRUD Operations**: Create, read, update, and delete notes
-- **Color-coded Notes**: Organize with 5 beautiful color themes
+- **Full CRUD Operations**: Create, read, update, and delete bookings
 - **Responsive Design**: Works perfectly on all devices
 - **Error Handling**: Comprehensive error handling and loading states
 - **TypeScript**: Fully typed for better development experience
@@ -18,11 +17,12 @@ A beautiful, production-ready notes application built with React, TypeScript, an
 - **Database**: Firebase Firestore
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
-- **Deployment**: Vercel-ready
+- **Deployment**: Vercel
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have:
+
 - Node.js 18+ installed
 - A Firebase project with Firestore enabled
 - Git (for cloning)
@@ -33,24 +33,27 @@ Before you begin, ensure you have:
 
 ```bash
 git clone <your-repo-url>
-cd firebase-notes-app
+cd padel-zapisvachka
 npm install
 ```
 
 ### 2. Firebase Configuration
 
 1. **Create a Firebase Project**:
+
    - Go to [Firebase Console](https://console.firebase.google.com/)
    - Click "Create a project"
    - Follow the setup wizard
 
 2. **Enable Firestore**:
+
    - In your Firebase project, go to "Firestore Database"
    - Click "Create database"
    - Choose "Start in test mode" (you can configure security rules later)
    - Select a location for your database
 
 3. **Get Firebase Configuration**:
+
    - Go to Project Settings (gear icon)
    - Scroll down to "Your apps" section
    - Click "Web" icon to create a web app
@@ -65,6 +68,7 @@ cp .env.example .env
 ```
 
 Edit `.env` with your Firebase config:
+
 ```env
 VITE_FIREBASE_API_KEY=your-api-key-here
 VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
@@ -84,48 +88,43 @@ Open http://localhost:5173 to view the app.
 
 ## 🚀 Deployment to Vercel
 
-### Option 1: Deploy via Vercel CLI
+The project is configured for easy deployment on Vercel with the following setup:
 
-1. Install Vercel CLI:
-```bash
-npm i -g vercel
-```
+1. **Automatic Deployment**:
 
-2. Deploy:
-```bash
-vercel
-```
+   - Push your code to GitHub
+   - Connect your repository to Vercel
+   - Vercel will automatically detect the Vite configuration
 
-3. Set environment variables in Vercel dashboard or via CLI:
-```bash
-vercel env add VITE_FIREBASE_API_KEY
-vercel env add VITE_FIREBASE_AUTH_DOMAIN
-vercel env add VITE_FIREBASE_PROJECT_ID
-vercel env add VITE_FIREBASE_STORAGE_BUCKET
-vercel env add VITE_FIREBASE_MESSAGING_SENDER_ID
-vercel env add VITE_FIREBASE_APP_ID
-```
+2. **Environment Variables**:
 
-### Option 2: Deploy via GitHub Integration
+   - Add your Firebase configuration as environment variables in the Vercel dashboard:
+     - `VITE_FIREBASE_API_KEY`
+     - `VITE_FIREBASE_AUTH_DOMAIN`
+     - `VITE_FIREBASE_PROJECT_ID`
+     - `VITE_FIREBASE_STORAGE_BUCKET`
+     - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+     - `VITE_FIREBASE_APP_ID`
 
-1. Push your code to GitHub
-2. Connect your GitHub repo to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically on push
+3. **Build Settings**:
+   The project includes a `vercel.json` configuration file with the following settings:
+   ```json
+   {
+     "buildCommand": "npm run build",
+     "devCommand": "npm run dev",
+     "installCommand": "npm install",
+     "framework": "vite",
+     "outputDirectory": "dist"
+   }
+   ```
 
 ## 📁 Project Structure
 
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── NoteCard.tsx    # Individual note display
-│   ├── CreateNoteModal.tsx # Note creation modal
-│   ├── LoadingSpinner.tsx  # Loading component
-│   └── ErrorMessage.tsx    # Error display component
 ├── services/           # API layer
-│   └── notesService.ts # Firebase Firestore operations
 ├── types/              # TypeScript type definitions
-│   └── Note.ts         # Note interface
 ├── firebase.ts         # Firebase configuration
 ├── App.tsx            # Main application component
 └── main.tsx           # Application entry point
@@ -139,47 +138,14 @@ For production use, configure Firestore security rules:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /notes/{document} {
+    match /bookings/{document} {
       allow read, write: if request.auth != null;
     }
   }
 }
 ```
 
-## 🎨 Customization
-
-### Colors
-Modify note colors in `src/components/CreateNoteModal.tsx` and `src/components/NoteCard.tsx`.
-
-### Styling
-The app uses Tailwind CSS. Customize the design system in `tailwind.config.js`.
-
-### Database Structure
-Notes are stored with this structure:
-```typescript
-{
-  id: string;
-  title: string;
-  content: string;
-  color: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Firebase connection errors**: Verify your environment variables
-2. **Build errors**: Ensure all dependencies are installed
-3. **Firestore permission errors**: Check your security rules
-
-### Debug Mode
-
-Set `VITE_DEBUG=true` in your `.env` for additional logging.
-
-## 📝 Scripts
+## 📝 Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
