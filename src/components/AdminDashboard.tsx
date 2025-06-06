@@ -269,6 +269,45 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Teams List */}
+            {tournament.teams && tournament.teams.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Teams</h4>
+                <div className="space-y-2">
+                  {tournament.teams.map((team) => (
+                    <div key={team.id} className="p-2 bg-blue-50 rounded">
+                      <span className="font-medium">{team.id}:</span>
+                      {team.players.map((player) => (
+                        <span key={player.id} className="ml-2">
+                          {player.name}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Simple Matchups List (round-robin) */}
+            {tournament.teams && tournament.teams.length > 1 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Matchups</h4>
+                <div className="space-y-2">
+                  {tournament.teams.map((teamA, i) =>
+                    tournament.teams!.slice(i + 1).map((teamB) => (
+                      <div
+                        key={teamA.id + "-" + teamB.id}
+                        className="p-2 bg-green-50 rounded"
+                      >
+                        <span className="font-medium">{teamA.id}</span> vs{" "}
+                        <span className="font-medium">{teamB.id}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

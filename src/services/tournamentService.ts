@@ -10,7 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { Tournament, TournamentPlayer } from "../types/tournament";
+import { Tournament, TournamentPlayer, Team } from "../types/tournament";
 
 const tournamentsCollection = collection(db, "tournaments");
 
@@ -114,6 +114,20 @@ export const updatePlayerPosition = async (
   await updateDoc(tournamentRef, { players: updatedPlayers });
 };
 
+export function generateTeams(players: TournamentPlayer[]): Team[] {
+  const teams: Team[] = [];
+  for (let i = 0; i < players.length; i += 2) {
+    const teamPlayers = players.slice(i, i + 2);
+    if (teamPlayers.length === 2) {
+      teams.push({
+        id: `team-${teams.length + 1}`,
+        players: teamPlayers,
+      });
+    }
+  }
+  return teams;
+}
+
 export const shufflePlayers = async (tournamentId: string): Promise<void> => {
   console.log("Starting shuffle for tournament:", tournamentId);
   const tournamentRef = doc(db, "tournaments", tournamentId);
@@ -153,6 +167,10 @@ export const shufflePlayers = async (tournamentId: string): Promise<void> => {
   });
   console.log("Players with positions:", playersWithPositions);
 
+  // Generate teams
+  const teams = generateTeams(playersWithPositions);
+  console.log("Generated teams:", teams);
+
   try {
     // First, verify we can read the document
     const currentDoc = await getDoc(tournamentRef);
@@ -163,6 +181,7 @@ export const shufflePlayers = async (tournamentId: string): Promise<void> => {
     console.log("Attempting to update document...");
     await updateDoc(tournamentRef, {
       players: playersWithPositions,
+      teams: teams,
       lastShuffled: new Date().toISOString(),
     });
     console.log("Tournament updated successfully");

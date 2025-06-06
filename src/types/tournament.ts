@@ -1,3 +1,8 @@
+export interface Team {
+  id: string;
+  players: TournamentPlayer[];
+}
+
 export interface Tournament {
   id: string;
   date: string;
@@ -8,6 +13,7 @@ export interface Tournament {
   players: TournamentPlayer[];
   createdAt: string;
   createdBy: string;
+  teams?: Team[];
 }
 
 export interface TournamentPlayer {
