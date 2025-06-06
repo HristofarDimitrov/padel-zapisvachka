@@ -8,6 +8,7 @@ import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<Admin | Player | null>(null);
@@ -67,36 +68,38 @@ function App() {
   const displayName = isAdmin ? "Admin" : (currentUser as Player).name;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">
-                {isAdmin ? "Admin Dashboard" : "Player Dashboard"}
-              </h1>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-4">{displayName}</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                Logout
-              </button>
+    <AuthProvider>
+      <div className="min-h-screen bg-gray-100">
+        <nav className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex items-center">
+                <h1 className="text-xl font-semibold">
+                  {isAdmin ? "Admin Dashboard" : "Player Dashboard"}
+                </h1>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-4">{displayName}</span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {isAdmin ? (
-          <AdminDashboard />
-        ) : (
-          <PlayerDashboard currentPlayer={currentUser as Player} />
-        )}
-      </main>
-    </div>
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {isAdmin ? (
+            <AdminDashboard />
+          ) : (
+            <PlayerDashboard currentPlayer={currentUser as Player} />
+          )}
+        </main>
+      </div>
+    </AuthProvider>
   );
 }
 
