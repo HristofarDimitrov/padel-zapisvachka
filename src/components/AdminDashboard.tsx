@@ -6,7 +6,9 @@ import {
   updateTournamentStatus,
   updatePlayerPosition,
   shufflePlayers,
+  deleteTournament,
 } from "../services/tournamentService";
+import { Trash2, AlertTriangle } from "lucide-react";
 
 const AdminDashboard: React.FC = () => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -14,6 +16,8 @@ const AdminDashboard: React.FC = () => {
     date: "",
     maxPlayers: 8,
   });
+  const [tournamentToDelete, setTournamentToDelete] = useState<Tournament | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadTournaments();
@@ -104,6 +108,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleDeleteTournament = async (tournament: Tournament) => {
+    setTournamentToDelete(tournament);
+  };
+
+  const confirmDelete = async () => {
+    if (!tournamentToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const success = await deleteTournament(tournamentToDelete.id);
+      if (success) {
+        await loadTournaments();
+      }
+    } catch (error) {
+      console.error("Error deleting tournament:", error);
+    } finally {
+      setIsDeleting(false);
+      setTournamentToDelete(null);
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
@@ -172,39 +197,37 @@ const AdminDashboard: React.FC = () => {
                   Status: {tournament.status}
                 </p>
               </div>
-              <div className="space-x-2">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleUpdateStatus(tournament.id, "ongoing")}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={tournament.status !== "upcoming"}
                 >
                   Start
                 </button>
                 <button
                   onClick={() => handleUpdateStatus(tournament.id, "completed")}
-                  className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
+                  className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={tournament.status !== "ongoing"}
                 >
                   Complete
                 </button>
                 <button
-                  onClick={(e) => {
-                    console.log("=== BUTTON CLICK EVENT ===");
-                    console.log("Event type:", e.type);
-                    console.log(
-                      "Button clicked for tournament:",
-                      tournament.id
-                    );
-                    e.preventDefault();
-                    handleShuffle(tournament.id);
-                  }}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  onClick={() => handleShuffle(tournament.id)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={
                     tournament.status !== "ongoing" ||
                     tournament.players.length === 0
                   }
                 >
                   Shuffle
+                </button>
+                <button
+                  onClick={() => handleDeleteTournament(tournament)}
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 flex items-center space-x-1"
+                >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
                 </button>
               </div>
             </div>
@@ -311,6 +334,48 @@ const AdminDashboard: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {tournamentToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center space-x-3 mb-4">
+              <AlertTriangle className="text-red-500" size={24} />
+              <h3 className="text-lg font-semibold">Delete Tournament</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete the tournament scheduled for{" "}
+              {new Date(tournamentToDelete.date).toLocaleString()}? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setTournamentToDelete(null)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

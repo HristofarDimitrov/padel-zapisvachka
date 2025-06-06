@@ -8,6 +8,7 @@ import {
   query,
   where,
   Timestamp,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Tournament, TournamentPlayer, Team } from "../types/tournament";
@@ -208,4 +209,15 @@ export const getAllTournaments = async (): Promise<Tournament[]> => {
     id: doc.id,
     ...doc.data(),
   })) as Tournament[];
+};
+
+export const deleteTournament = async (tournamentId: string): Promise<boolean> => {
+  try {
+    const tournamentRef = doc(db, "tournaments", tournamentId);
+    await deleteDoc(tournamentRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting tournament:", error);
+    return false;
+  }
 };
